@@ -1,5 +1,4 @@
 require('dotenv').config()
-const TorrentManager = require('./torrent-manager');
 const axios = require('axios').default;
 const disk = require('diskusage');
 
@@ -9,9 +8,11 @@ class PlexServer {
   static #plexToken = process.env.PLEX_TOKEN;
   static #threshold = process.env.PLEX_SPACE_THRESHOLD;
 
+  constructor() {}
+
   /**
    * @description Helper function to fetch the library paths for a specified library type from Plex.
-   * @param {TorrentManager.Type} type Type of library: 'movie' or 'show'
+   * @param {string} type Type of library: 'movie' or 'show'
    * @returns {string[]} Array of locations for the given library type.
    */
   static async #fetchLibraries(type) {
@@ -49,7 +50,7 @@ class PlexServer {
 
   /**
    * @description Checks the total amount of available space across all Plex library locations.
-   * @param {TorrentManager.Type} type Type of library: 'movie' or 'show'
+   * @param {string} type Type of library: 'movie' or 'show'
    * @returns {object} JSON object containing the available and total space for library locations.
    */
   static async checkSpace(type) {
@@ -59,15 +60,15 @@ class PlexServer {
     }
 
     // Check for valid library type (if specified)
-    if(type != undefined && type != TorrentManager.Type.MOVIE && type != TorrentManager.Type.TV) {
+    if(type != undefined && type != 'movie' && type != 'show') {
       console.log(`Unsupported library type indicated: ${type}`);
       return result;
     }
 
     const diskTracker = new Map();
-    const paths = PlexServer.#fetchLibraries();
+    const paths = await PlexServer.#fetchLibraries();
     for(const path of paths) {
-      const diskInfo = PlexServer.#getDiskInfo(path);
+      const diskInfo = await PlexServer.#getDiskInfo(path);
       if(!diskTracker.has(diskInfo.total)) {
         result.available += diskInfo.available;
         result.total += diskInfo.total;
@@ -80,21 +81,21 @@ class PlexServer {
 
   /**
    * @description Gets the libaray location with the most space available (by library type).
-   * @param {TorrentManager.Type} type Type of library: 'movie' or 'show'
+   * @param {string} type Type of library: 'movie' or 'show'
    * @returns {object} JSON object containing the path and available space
    */
   static async getLibraryLocation(type) {
     // Check for valid library type
-    if(type != TorrentManager.Type.MOVIE && type != TorrentManager.Type.TV) {
+    if(type != 'movie' && type != 'show') {
       console.log(`Unsupported library type indicated: ${type}`);
       return undefined;
     }
 
-    const paths = PlexServer.#fetchLibraries(type);
+    const paths = await PlexServer.#fetchLibraries(type);
 
     const result = { path: undefined, availableSpace: 0 };
     for(const path of paths) {
-      const diskInfo = PlexServer.#getDiskInfo(path);
+      const diskInfo = await PlexServer.#getDiskInfo(path);
       if(diskInfo.available > result.availableSpace) {
         result.path = path;
         result.availableSpace = diskInfo.available;
