@@ -1,4 +1,5 @@
 const Command = require('./command.js');
+const TorrentManager = require('../torrent-manager.js');
 
 class TV extends Command {
 
@@ -9,7 +10,6 @@ class TV extends Command {
       'tv',
       'Torrents a tv show to the Plex server.'
     );
-
     this.#interaction = interaction;
   }
 

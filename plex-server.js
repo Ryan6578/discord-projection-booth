@@ -72,7 +72,7 @@ class PlexServer {
       if(!diskTracker.has(diskInfo.total)) {
         result.available += diskInfo.available;
         result.total += diskInfo.total;
-        diskInfo.set(diskInfo.total, true);
+        diskTracker.set(diskInfo.total, true);
       }
     }
 
